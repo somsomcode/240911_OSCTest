@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OSC 버튼</title>
+  </head>
+  <body>
+    <h1>OSC 신호 보내기</h1>
+    <button id="sendOscButton">OSC 신호 보내기</button>
+
+    <script>
+      // WebSocket 연결 설정
+      const ws = new WebSocket("ws://localhost:3000");
+
+      // 버튼 클릭 시 WebSocket으로 메시지 전송
+      document.getElementById("sendOscButton").addEventListener("click", () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send("버튼 클릭 신호 전송");
+          console.log("버튼 클릭 신호 전송");
+        } else {
+          console.log("WebSocket 연결 상태가 아닙니다.");
+        }
+      });
+
+      // WebSocket 연결 열림 이벤트 처리
+      ws.onopen = function () {
+        console.log("WebSocket 연결 성공");
+      };
+
+      // WebSocket 메시지 수신 이벤트 처리
+      ws.onmessage = function (event) {
+        console.log("서버로부터 메시지:", event.data);
+      };
+
+      // WebSocket 연결 닫힘 처리
+      ws.onclose = function () {
+        console.log("WebSocket 연결 종료");
+      };
+
+      // WebSocket 에러 처리
+      ws.onerror = function (error) {
+        console.error("WebSocket 오류:", error);
+      };
+    </script>
+  </body>
+</html>
