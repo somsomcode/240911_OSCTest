@@ -5,7 +5,7 @@ const http = require("http");
 const WebSocket = require("ws");
 
 // 설정
-const OSC_SEND_ADDRESS = "127.0.0.1"; // 로컬 주소
+const OSC_SEND_ADDRESS = "172.30.1.15"; // 로컬 주소
 const OSC_SEND_PORT = 7001; // OSC 메시지 보낼 포트
 const OSC_RECEIVE_PORT = 7002; // OSC 메시지 받을 포트
 const SEND_INTERVAL = 3000; // 3초 간격으로 보냄
