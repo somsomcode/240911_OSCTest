@@ -5,7 +5,6 @@ const http = require("http");
 const WebSocket = require("ws");
 
 // 설정
-
 const OSC_RECEIVE_PORT = 7002; // OSC 메시지 받을 포트
 const SEND_INTERVAL = 3000; // 3초 간격으로 보냄
 
