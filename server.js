@@ -5,8 +5,7 @@ const http = require("http");
 const WebSocket = require("ws");
 
 // 설정
-const OSC_SEND_ADDRESS = "172.30.1.15"; // 로컬 주소
-const OSC_SEND_PORT = 7001; // OSC 메시지 보낼 포트
+
 const OSC_RECEIVE_PORT = 7002; // OSC 메시지 받을 포트
 const SEND_INTERVAL = 3000; // 3초 간격으로 보냄
 
@@ -20,8 +19,6 @@ const wss = new WebSocket.Server({ server });
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0", // 모든 인터페이스에서 수신
   localPort: OSC_RECEIVE_PORT, // 메시지 받을 포트
-  remoteAddress: OSC_SEND_ADDRESS, // 메시지 보낼 주소
-  remotePort: OSC_SEND_PORT, // 메시지 보낼 포트
 });
 
 // OSC 포트 열기
@@ -38,19 +35,21 @@ wss.on("connection", (ws) => {
 
   // 클라이언트로부터 메시지 수신 시 OSC 신호 전송
   ws.on("message", (message) => {
-    console.log("받은 메시지:", message);
+    const { oscAddress, oscPort, oscMsgAddress, content } = JSON.parse(message);
+
+    console.log("받은 메시지:", content, "OSC 주소:", oscAddress, "포트:", oscPort, "메시지 Address:", oscMsgAddress);
 
     let msg = {
-      address: "/button",
-      args: [message],
+      address: oscMsgAddress,  // 사용자가 입력한 OSC address
+      args: [content],
     };
 
     // OSC 신호 전송
-    udpPort.send(msg, OSC_SEND_ADDRESS, OSC_SEND_PORT, (err) => {
+    udpPort.send(msg, oscAddress, oscPort, (err) => {
       if (err) {
         console.error("OSC 메시지 전송 중 오류 발생:", err);
       } else {
-        console.log("OSC 신호 전송:", message);
+        console.log(`OSC 신호를 ${oscAddress}:${oscPort} 에 전송 (Address: ${oscMsgAddress}):`, content);
       }
     });
   });
@@ -61,7 +60,7 @@ wss.on("connection", (ws) => {
   });
 });
 
-// 3초마다 OSC 신호 전송
+// 3초마다 OSC 신호 전송 (기본 값)
 setInterval(() => {
   let msg = {
     address: "/test_loop",
@@ -69,7 +68,7 @@ setInterval(() => {
   };
 
   // 비동기 전송 및 오류 처리
-  udpPort.send(msg, OSC_SEND_ADDRESS, OSC_SEND_PORT, (err) => {
+  udpPort.send(msg, "192.168.0.20", 7001, (err) => {
     if (err) {
       console.error("OSC 메시지 전송 중 오류 발생:", err);
     } else {

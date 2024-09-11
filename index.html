@@ -6,7 +6,17 @@
     <title>OSC 버튼</title>
   </head>
   <body>
-    <h1>OSC 신호 보내기</h1>
+    <h1>OSC 설정 및 신호 보내기</h1>
+    
+    <label for="oscAddress">OSC 전송 주소:</label>
+    <input type="text" id="oscAddress" placeholder="192.168.0.20" value="192.168.0.20" /><br><br>
+
+    <label for="oscPort">OSC 포트 번호:</label>
+    <input type="text" id="oscPort" placeholder="7001" value="7001" /><br><br>
+
+    <label for="oscMsgAddress">OSC 메시지 Address:</label>
+    <input type="text" id="oscMsgAddress" placeholder="/button" value="/button" /><br><br>
+
     <button id="sendOscButton">OSC 신호 보내기</button>
 
     <script>
@@ -15,9 +25,19 @@
 
       // 버튼 클릭 시 WebSocket으로 메시지 전송
       document.getElementById("sendOscButton").addEventListener("click", () => {
+        const oscAddress = document.getElementById("oscAddress").value;
+        const oscPort = document.getElementById("oscPort").value;
+        const oscMsgAddress = document.getElementById("oscMsgAddress").value;
+
         if (ws.readyState === WebSocket.OPEN) {
-          ws.send("버튼 클릭 신호 전송");
-          console.log("버튼 클릭 신호 전송");
+          const message = {
+            oscAddress: oscAddress,  // 사용자가 입력한 OSC 주소
+            oscPort: oscPort,        // 사용자가 입력한 포트 번호
+            oscMsgAddress: oscMsgAddress, // 사용자가 입력한 OSC 메시지 Address
+            content: "버튼 클릭 신호 전송"
+          };
+          ws.send(JSON.stringify(message));  // 메시지를 JSON 형식으로 전송
+          console.log(`OSC 주소: ${oscAddress}, 포트: ${oscPort}, 메시지 Address: ${oscMsgAddress} 로 신호 전송`);
         } else {
           console.log("WebSocket 연결 상태가 아닙니다.");
         }
