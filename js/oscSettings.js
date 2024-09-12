@@ -1,4 +1,4 @@
-import { ws } from './js/websocket.js';
+import { ws } from './js/websocket.js';  
 
 document.getElementById("saveSettingsButton").addEventListener("click", () => {
   const oscAddress = document.getElementById("oscAddress").value;
