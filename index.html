@@ -3,65 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OSC 버튼</title>
+    <title>OSC 설정 및 신호 보내기</title>
+    <script type="module" src="./js/websocket.js"></script>
+    <script type="module" src="./js/oscSettings.js"></script>
+    <script type="module" src="./js/manualMessage.js"></script>
+    <script type="module" src="./js/loopMessage.js"></script>
   </head>
   <body>
     <h1>OSC 설정 및 신호 보내기</h1>
-    
+
+    <!-- OSC 설정 -->
+    <h2>OSC 설정</h2>
     <label for="oscAddress">OSC 전송 주소:</label>
     <input type="text" id="oscAddress" placeholder="OSC 전송 주소 입력" /><br><br>
 
     <label for="oscPort">OSC 포트 번호:</label>
     <input type="text" id="oscPort" placeholder="OSC 포트 번호 입력" /><br><br>
 
-    <label for="oscMsgAddress">OSC 메시지 Address:</label>
+    <button id="saveSettingsButton">OSC 설정 저장</button>
+    <br><br>
+
+    <!-- 메시지 전송 부분 -->
+    <h2>메시지 전송</h2>
+    <label for="oscMsgAddress">수동 전송할 OSC 메시지 Address:</label>
     <input type="text" id="oscMsgAddress" placeholder="OSC 메시지 Address 입력" /><br><br>
 
-    <button id="sendOscButton">OSC 신호 보내기</button>
+    <label for="loopMsgAddress">반복 전송할 메시지 Address:</label>
+    <input type="text" id="loopMsgAddress" placeholder="반복 전송할 메시지 Address" /><br><br>
 
-    <script>
-      // WebSocket 연결 설정 (wss:// 프로토콜 사용)
-      const ws = new WebSocket("wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app/");
+    <label for="loopInterval">반복 간격 (밀리초):</label>
+    <input type="text" id="loopInterval" placeholder="반복 간격 설정 (예: 3000)" /><br><br>
 
-      // 버튼 클릭 시 WebSocket으로 메시지 전송
-      document.getElementById("sendOscButton").addEventListener("click", () => {
-        const oscAddress = document.getElementById("oscAddress").value;
-        const oscPort = document.getElementById("oscPort").value;
-        const oscMsgAddress = document.getElementById("oscMsgAddress").value;
-
-        if (ws.readyState === WebSocket.OPEN) {
-          const message = {
-            oscAddress: oscAddress,  // 사용자가 입력한 OSC 주소
-            oscPort: oscPort,        // 사용자가 입력한 포트 번호
-            oscMsgAddress: oscMsgAddress, // 사용자가 입력한 OSC 메시지 Address
-            content: "버튼 클릭 신호 전송"
-          };
-          ws.send(JSON.stringify(message));  // 메시지를 JSON 형식으로 전송
-          console.log(`OSC 주소: ${oscAddress}, 포트: ${oscPort}, 메시지 Address: ${oscMsgAddress} 로 신호 전송`);
-        } else {
-          console.log("WebSocket 연결 상태가 아닙니다.");
-        }
-      });
-
-      // WebSocket 연결 열림 이벤트 처리
-      ws.onopen = function () {
-        console.log("WebSocket 연결 성공");
-      };
-
-      // WebSocket 메시지 수신 이벤트 처리
-      ws.onmessage = function (event) {
-        console.log("서버로부터 메시지:", event.data);
-      };
-
-      // WebSocket 연결 닫힘 처리
-      ws.onclose = function () {
-        console.log("WebSocket 연결 종료");
-      };
-
-      // WebSocket 에러 처리
-      ws.onerror = function (error) {
-        console.error("WebSocket 오류:", error);
-      };
-    </script>
+    <button id="sendOscButton">수동 OSC 신호 보내기</button>
+    <button id="startLoopButton">반복 OSC 신호 시작</button>
+    <button id="stopLoopButton">반복 OSC 신호 중지</button>
   </body>
 </html>
