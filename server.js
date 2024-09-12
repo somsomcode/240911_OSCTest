@@ -1,5 +1,6 @@
 const express = require("express");
 const osc = require("osc");
+const cors = require("cors");  // CORS 패키지 불러오기
 const app = express();
 const http = require("http");
 const WebSocket = require("ws");
@@ -10,6 +11,9 @@ let loopIntervalId = null;
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+// CORS 설정 추가
+app.use(cors());  // 모든 도메인에서의 요청 허용
 
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
