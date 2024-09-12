@@ -1,5 +1,5 @@
-// HTTPS 페이지에서는 wss:// 사용
-const ws = new WebSocket('wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app');
+// websocket.js
+export const ws = new WebSocket('wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app');
 
 ws.onopen = () => {
   console.log("WebSocket 연결 성공");
