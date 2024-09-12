@@ -1,4 +1,4 @@
-import { ws } from '/js/websocket.js';
+import { ws } from './websocket.js';
 
 document.getElementById("startLoopButton").addEventListener("click", () => {
   const loopMsgAddress = document.getElementById("loopMsgAddress").value;
