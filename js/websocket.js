@@ -1,5 +1,7 @@
 //export const ws = new WebSocket("ws://localhost:3000");
-export const ws = new WebSocket("wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app/");
+
+// HTTPS 페이지에서는 wss:// 사용
+const wss = new WebSocket('wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app');
 
 
 ws.onopen = () => {
