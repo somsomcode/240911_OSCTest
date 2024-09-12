@@ -15,6 +15,9 @@ const wss = new WebSocket.Server({ server });
 // CORS 설정 추가
 app.use(cors());  // 모든 도메인에서의 요청 허용
 
+// 정적 파일 제공 설정
+app.use(express.static('public'));
+
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
   localPort: 7002,
