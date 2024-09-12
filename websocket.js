@@ -1,4 +1,6 @@
-export const ws = new WebSocket("ws://localhost:3000");
+//export const ws = new WebSocket("ws://localhost:3000");
+export const ws = new WebSocket("wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app/");
+
 
 ws.onopen = () => {
   console.log("WebSocket 연결 성공");
