@@ -23,6 +23,11 @@ const udpPort = new osc.UDPPort({
 // OSC 포트 열기
 udpPort.open();
 
+// 포트 열림 확인
+udpPort.on("ready", function () {
+  console.log(`OSC 포트가 ${OSC_RECEIVE_PORT}에서 열렸습니다.`);
+});
+
 // OSC 메시지 수신 설정
 udpPort.on("message", function (oscMessage) {
   console.log("Received OSC message:", oscMessage);
@@ -37,6 +42,7 @@ wss.on("connection", (ws) => {
     try {
       const { oscAddress, oscPort, oscMsgAddress, content } = JSON.parse(message);
 
+      // 파싱된 데이터 출력
       console.log("받은 메시지:", content, "OSC 주소:", oscAddress, "포트:", oscPort, "메시지 Address:", oscMsgAddress);
 
       let msg = {
