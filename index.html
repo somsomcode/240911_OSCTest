@@ -20,8 +20,8 @@
     <button id="sendOscButton">OSC 신호 보내기</button>
 
     <script>
-      // WebSocket 연결 설정
-      const ws = new WebSocket("https://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app/");
+      // WebSocket 연결 설정 (wss:// 프로토콜 사용)
+      const ws = new WebSocket("wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app/");
 
       // 버튼 클릭 시 WebSocket으로 메시지 전송
       document.getElementById("sendOscButton").addEventListener("click", () => {

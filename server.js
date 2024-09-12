@@ -34,23 +34,27 @@ wss.on("connection", (ws) => {
 
   // 클라이언트로부터 메시지 수신 시 OSC 신호 전송
   ws.on("message", (message) => {
-    const { oscAddress, oscPort, oscMsgAddress, content } = JSON.parse(message);
+    try {
+      const { oscAddress, oscPort, oscMsgAddress, content } = JSON.parse(message);
 
-    console.log("받은 메시지:", content, "OSC 주소:", oscAddress, "포트:", oscPort, "메시지 Address:", oscMsgAddress);
+      console.log("받은 메시지:", content, "OSC 주소:", oscAddress, "포트:", oscPort, "메시지 Address:", oscMsgAddress);
 
-    let msg = {
-      address: oscMsgAddress,  // 사용자가 입력한 OSC address
-      args: [content],
-    };
+      let msg = {
+        address: oscMsgAddress,  // 사용자가 입력한 OSC address
+        args: [content],
+      };
 
-    // OSC 신호 전송
-    udpPort.send(msg, oscAddress, oscPort, (err) => {
-      if (err) {
-        console.error("OSC 메시지 전송 중 오류 발생:", err);
-      } else {
-        console.log(`OSC 신호를 ${oscAddress}:${oscPort} 에 전송 (Address: ${oscMsgAddress}):`, content);
-      }
-    });
+      // OSC 신호 전송
+      udpPort.send(msg, oscAddress, oscPort, (err) => {
+        if (err) {
+          console.error("OSC 메시지 전송 중 오류 발생:", err);
+        } else {
+          console.log(`OSC 신호를 ${oscAddress}:${oscPort} 에 전송 (Address: ${oscMsgAddress}):`, content);
+        }
+      });
+    } catch (error) {
+      console.error("WebSocket 메시지 처리 중 오류:", error);
+    }
   });
 
   // 연결 종료 처리
@@ -76,9 +80,9 @@ setInterval(() => {
   });
 }, SEND_INTERVAL);
 
-// 서버 시작
-const port = 3000;
+// 서버 시작 (Cloudtype에서 제공하는 포트 사용)
+const port = process.env.PORT || 3000;
 server.listen(port, () => {
-  console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
+  console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
   console.log(`OSC 메시지를 ${OSC_RECEIVE_PORT} 포트에서 수신 중입니다.`);
 });
