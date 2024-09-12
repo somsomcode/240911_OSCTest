@@ -1,4 +1,4 @@
-export const ws = new WebSocket('wss://159.223.42.128:3000');  // wss://로 변경
+export const ws = new WebSocket('ws://159.223.42.128:3000');  // wss://로 변경
 // Droplet의 IP와 WebSocket 포트 사용
 
 let pingInterval;
