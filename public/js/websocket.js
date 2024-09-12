@@ -1,5 +1,6 @@
 // websocket.js
-export const ws = new WebSocket('wss://port-0-osctest-m0xnhece5b39a09d.sel4.cloudtype.app');
+export const ws = new WebSocket('wss://159.223.42.128:3000');  // wss://로 변경
+ // Droplet의 IP와 WebSocket 포트 사용
 
 ws.onopen = () => {
   console.log("WebSocket 연결 성공");
