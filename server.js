@@ -1,5 +1,5 @@
 const fs = require('fs');
-const https = require('https');
+const http = require('http');  // HTTP 모듈로 변경
 const express = require("express");
 const osc = require("osc");
 const cors = require("cors");
@@ -7,15 +7,11 @@ const WebSocket = require("ws");
 
 const app = express();
 
-// SSL 인증서 파일 경로 설정 (Let's Encrypt 예시)
-const server = https.createServer({
-  key: fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/fullchain.pem')
-}, app);
+// HTTP 서버 설정
+const server = http.createServer(app);
 
-// WebSocket 서버 설정 (wss:// 사용)
+// WebSocket 서버 설정 (ws:// 사용)
 const wss = new WebSocket.Server({ server });
-
 
 // CORS 설정
 app.use(cors());
@@ -24,7 +20,7 @@ app.use(express.static('public'));
 // OSC 설정
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
-  localPort: 7002,
+  localPort: 7002,  // 로컬 OSC 수신 포트
 });
 
 udpPort.open();
@@ -124,8 +120,8 @@ wss.on("connection", (ws) => {
   });
 });
 
-// HTTPS 서버를 443 포트에서 실행 (기본 HTTPS 포트)
-const port = 443;
+// HTTP 서버를 로컬 포트에서 실행
+const port = 3000;  // 로컬 서버 포트
 server.listen(port, () => {
-  console.log(`서버가 포트 ${port}에서 HTTPS 및 WebSocket으로 실행 중입니다.`);
+  console.log(`서버가 포트 ${port}에서 HTTP 및 WebSocket으로 실행 중입니다.`);
 });
