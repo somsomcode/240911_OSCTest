@@ -1,20 +1,27 @@
+const fs = require('fs');
+const https = require('https');
 const express = require("express");
 const osc = require("osc");
 const cors = require("cors");
-const app = express();
-const http = require("http");
 const WebSocket = require("ws");
 
-let userOscAddress = "";
-let userOscPort = "";
-let loopIntervalId = null;
+const app = express();
 
-const server = http.createServer(app);
+// SSL 인증서 파일 경로 설정 (Let's Encrypt 예시)
+const server = https.createServer({
+  key: fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/fullchain.pem')
+}, app);
+
+// WebSocket 서버 설정 (wss:// 사용)
 const wss = new WebSocket.Server({ server });
 
-app.use(cors());  // 모든 도메인에서의 요청 허용
+
+// CORS 설정
+app.use(cors());
 app.use(express.static('public'));
 
+// OSC 설정
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
   localPort: 7002,
@@ -117,7 +124,8 @@ wss.on("connection", (ws) => {
   });
 });
 
-const port = process.env.PORT || 3000;
+// HTTPS 서버를 443 포트에서 실행 (기본 HTTPS 포트)
+const port = 443;
 server.listen(port, () => {
-  console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
+  console.log(`서버가 포트 ${port}에서 HTTPS 및 WebSocket으로 실행 중입니다.`);
 });
