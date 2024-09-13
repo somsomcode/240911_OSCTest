@@ -1,16 +1,27 @@
+const fs = require('fs');
+const https = require('https');
 const express = require("express");
 const osc = require("osc");
-const app = express();
-const http = require("http");
+const cors = require("cors");
 const WebSocket = require("ws");
 
-let userOscAddress = "";
-let userOscPort = "";
-let loopIntervalId = null;
+const app = express();
 
-const server = http.createServer(app);
+// SSL 인증서 파일 경로 설정 (Let's Encrypt 예시)
+const server = https.createServer({
+  key: fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/fullchain.pem')
+}, app);
+
+// WebSocket 서버 설정 (wss:// 사용)
 const wss = new WebSocket.Server({ server });
 
+
+// CORS 설정
+app.use(cors());
+app.use(express.static('public'));
+
+// OSC 설정
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
   localPort: 7002,
@@ -26,8 +37,22 @@ udpPort.on("error", function (error) {
   console.error("OSC 포트 열기 중 오류 발생:", error);
 });
 
+// 일정 간격으로 Ping 메시지 전송
+const interval = 30000; // 30초마다 Ping 전송
 wss.on("connection", (ws) => {
   console.log("WebSocket 클라이언트 연결됨");
+
+  // Ping 주기적으로 전송
+  const pingInterval = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.ping();  // Ping 전송
+      console.log("Ping 전송");
+    }
+  }, interval);
+
+  ws.on("pong", () => {
+    console.log("Pong 수신");
+  });
 
   ws.on("message", (message) => {
     try {
@@ -42,14 +67,12 @@ wss.on("connection", (ws) => {
         stopLoop
       } = JSON.parse(message);
 
-      // OSC 주소 및 포트 설정
       if (oscAddress && oscPort) {
         userOscAddress = oscAddress;
         userOscPort = oscPort;
         console.log(`OSC 설정 저장: 주소 ${userOscAddress}, 포트 ${userOscPort}`);
       }
 
-      // 반복 메시지 중지 요청 처리
       if (stopLoop && isLoopMessage) {
         if (loopIntervalId) {
           clearInterval(loopIntervalId);
@@ -58,7 +81,6 @@ wss.on("connection", (ws) => {
         }
       }
 
-      // 반복 메시지 설정 및 시작
       else if (isLoopMessage && loopAddress && loopInterval) {
         if (loopIntervalId) {
           clearInterval(loopIntervalId);
@@ -76,7 +98,6 @@ wss.on("connection", (ws) => {
         console.log(`반복 메시지 전송 시작: ${loopInterval}ms 간격`);
       }
 
-      // 수동 메시지 전송
       if (!isLoopMessage && oscMsgAddress) {
         let msg = {
           address: oscMsgAddress,
@@ -98,11 +119,13 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     console.log("WebSocket 연결 종료");
-    clearInterval(loopIntervalId); // WebSocket 연결 종료 시 반복 메시지 중지
+    clearInterval(loopIntervalId);
+    clearInterval(pingInterval);  // 연결 종료 시 Ping 전송 중지
   });
 });
 
-const port = process.env.PORT || 3000;
+// HTTPS 서버를 443 포트에서 실행 (기본 HTTPS 포트)
+const port = 443;
 server.listen(port, () => {
-  console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
+  console.log(`서버가 포트 ${port}에서 HTTPS 및 WebSocket으로 실행 중입니다.`);
 });
