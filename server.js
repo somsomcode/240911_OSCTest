@@ -10,12 +10,13 @@ const app = express();
 // HTTP 서버 설정
 const server = http.createServer(app);
 
-// WebSocket 서버 설정 (ws:// 사용)
+// WebSocket 서버 설정
 const wss = new WebSocket.Server({ server });
 
 // 전역 변수 초기화
 let userOscAddress = "127.0.0.1";  // 기본 OSC 주소
-let userOscPort = 7000;  // 기본 OSC 포트
+let userOscPort1 = 7000;  // 첫 번째 기본 OSC 포트
+let userOscPort2 = 7001;  // 두 번째 기본 OSC 포트
 let loopIntervalId = null;  // 반복 메시지 전송 제어
 
 // CORS 설정
@@ -55,11 +56,13 @@ wss.on("connection", (ws) => {
     console.log("Pong 수신");
   });
 
-  ws.on("message", (message) => {
+  // 메시지 처리 함수
+  const handleMessage = (message) => {
     try {
       const {
         oscAddress,
-        oscPort,
+        oscPort1,
+        oscPort2,
         oscMsgAddress,
         content,
         isLoopMessage,
@@ -69,10 +72,18 @@ wss.on("connection", (ws) => {
       } = JSON.parse(message);
 
       // OSC 설정 저장
-      if (oscAddress && oscPort) {
+      if (oscAddress && oscPort1 && oscPort2) {
         userOscAddress = oscAddress;
-        userOscPort = oscPort;
-        console.log(`OSC 설정 저장: 주소 ${userOscAddress}, 포트 ${userOscPort}`);
+        userOscPort1 = oscPort1;
+        userOscPort2 = oscPort2;
+        console.log(`OSC 설정 저장: 주소 ${userOscAddress}, 포트1 ${userOscPort1}, 포트2 ${userOscPort2}`);
+      }
+
+      // 수동 OSC 메시지 전송
+      if (!isLoopMessage && oscMsgAddress) {
+        console.log("수동 메시지 전송 시작");
+        sendOscMessage(oscMsgAddress, content || '', false, userOscPort1, userOscPort2);
+        return;  // 수동 메시지 처리 후 바로 반환
       }
 
       // 반복 메시지 전송 중지
@@ -85,47 +96,62 @@ wss.on("connection", (ws) => {
       }
 
       // 반복 메시지 전송 시작
-      else if (isLoopMessage && loopAddress && loopInterval) {
+      if (isLoopMessage && loopAddress && loopInterval) {
         if (loopIntervalId) {
-          clearInterval(loopIntervalId);
+          clearInterval(loopIntervalId);  // 기존 반복 메시지 중지
         }
         loopIntervalId = setInterval(() => {
-          let msg = { address: loopAddress };
-          udpPort.send(msg, userOscAddress, userOscPort, (err) => {
-            if (err) {
-              console.error("OSC 메시지 전송 중 오류 발생:", err);
-            } else {
-              console.log(`반복 OSC 전송: ${userOscAddress}:${userOscPort}, Address: ${loopAddress}`);
-            }
-          });
+          sendOscMessage(loopAddress, null, true, userOscPort1, userOscPort2);
         }, loopInterval);
         console.log(`반복 메시지 전송 시작: ${loopInterval}ms 간격`);
       }
 
-      // 수동 OSC 메시지 전송
-      if (!isLoopMessage && oscMsgAddress) {
-        let msg = {
-          address: oscMsgAddress,
-          args: [content],
-        };
-
-        udpPort.send(msg, userOscAddress, userOscPort, (err) => {
-          if (err) {
-            console.error("OSC 메시지 전송 중 오류 발생:", err);
-          } else {
-            console.log(`수동 OSC 전송: ${userOscAddress}:${userOscPort}, Address: ${oscMsgAddress}`);
-          }
-        });
-      }
     } catch (error) {
       console.error("메시지 처리 중 오류:", error);
     }
-  });
+  };
 
+  // OSC 메시지 전송 함수 (두 포트로 전송)
+  const sendOscMessage = (address, content = null, isLoop = false, port1, port2) => {
+    let msg = {
+      address: address,
+    };
+    if (content) {
+      msg.args = [content];
+    }
+
+    console.log(`OSC 메시지 전송 준비: 주소: ${address}, 포트1: ${port1}, 포트2: ${port2}, 내용: ${content}`);
+
+    // 첫 번째 포트로 전송
+    udpPort.send(msg, userOscAddress, port1, (err) => {
+      if (err) {
+        console.error(`첫 번째 포트(${port1})로 OSC 메시지 전송 중 오류 발생:`, err);
+      } else {
+        const type = isLoop ? "반복" : "수동";
+        console.log(`${type} OSC 전송 (포트1): ${userOscAddress}:${port1}, Address: ${address}, Content: ${content}`);
+      }
+    });
+
+    // 두 번째 포트로 전송
+    udpPort.send(msg, userOscAddress, port2, (err) => {
+      if (err) {
+        console.error(`두 번째 포트(${port2})로 OSC 메시지 전송 중 오류 발생:`, err);
+      } else {
+        const type = isLoop ? "반복" : "수동";
+        console.log(`${type} OSC 전송 (포트2): ${userOscAddress}:${port2}, Address: ${address}, Content: ${content}`);
+      }
+    });
+  };
+
+  ws.on("message", handleMessage);
+
+  // WebSocket 연결 종료 시 처리
   ws.on("close", () => {
     console.log("WebSocket 연결 종료");
-    clearInterval(loopIntervalId);
-    clearInterval(pingInterval);  // 연결 종료 시 Ping 전송 중지
+    if (loopIntervalId) {
+      clearInterval(loopIntervalId);  // 반복 메시지 전송 중지
+    }
+    clearInterval(pingInterval);  // Ping 전송 중지
   });
 });
 
