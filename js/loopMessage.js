@@ -1,4 +1,6 @@
-import { ws } from './websocket.js';
+// loopMessage.js
+
+import { ws } from './websocket.js';  // websocket.js에서 ws 가져오기
 
 document.getElementById("startLoopButton").addEventListener("click", () => {
   const loopMsgAddress = document.getElementById("loopMsgAddress").value;

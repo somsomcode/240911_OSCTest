@@ -1,5 +1,5 @@
 const fs = require('fs');
-const http = require('http');  // HTTP 모듈로 변경
+const http = require('http');
 const express = require("express");
 const osc = require("osc");
 const cors = require("cors");
@@ -12,6 +12,11 @@ const server = http.createServer(app);
 
 // WebSocket 서버 설정 (ws:// 사용)
 const wss = new WebSocket.Server({ server });
+
+// 전역 변수 초기화
+let userOscAddress = "127.0.0.1";  // 기본 OSC 주소
+let userOscPort = 7000;  // 기본 OSC 포트
+let loopIntervalId = null;  // 반복 메시지 전송 제어
 
 // CORS 설정
 app.use(cors());
@@ -33,12 +38,12 @@ udpPort.on("error", function (error) {
   console.error("OSC 포트 열기 중 오류 발생:", error);
 });
 
-// 일정 간격으로 Ping 메시지 전송
-const interval = 30000; // 30초마다 Ping 전송
+// WebSocket 연결 처리
 wss.on("connection", (ws) => {
   console.log("WebSocket 클라이언트 연결됨");
 
   // Ping 주기적으로 전송
+  const interval = 30000; // 30초마다 Ping 전송
   const pingInterval = setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.ping();  // Ping 전송
@@ -63,12 +68,14 @@ wss.on("connection", (ws) => {
         stopLoop
       } = JSON.parse(message);
 
+      // OSC 설정 저장
       if (oscAddress && oscPort) {
         userOscAddress = oscAddress;
         userOscPort = oscPort;
         console.log(`OSC 설정 저장: 주소 ${userOscAddress}, 포트 ${userOscPort}`);
       }
 
+      // 반복 메시지 전송 중지
       if (stopLoop && isLoopMessage) {
         if (loopIntervalId) {
           clearInterval(loopIntervalId);
@@ -77,6 +84,7 @@ wss.on("connection", (ws) => {
         }
       }
 
+      // 반복 메시지 전송 시작
       else if (isLoopMessage && loopAddress && loopInterval) {
         if (loopIntervalId) {
           clearInterval(loopIntervalId);
@@ -94,6 +102,7 @@ wss.on("connection", (ws) => {
         console.log(`반복 메시지 전송 시작: ${loopInterval}ms 간격`);
       }
 
+      // 수동 OSC 메시지 전송
       if (!isLoopMessage && oscMsgAddress) {
         let msg = {
           address: oscMsgAddress,
