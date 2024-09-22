@@ -45,7 +45,7 @@ const reconnectWebSocket = () => {
   console.log("WebSocket 재연결 시도");
 
   // 새로운 WebSocket 객체 생성 후 다시 연결
-  const newWs = new WebSocket('ws://localhost:3000');
+  const newWs = new WebSocket('ws://localhost:3001');
 
   newWs.onopen = ws.onopen;
   newWs.onmessage = ws.onmessage;

@@ -3,133 +3,95 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OSC 설정 및 신호 보내기</title>
+    <title>OSC 메시지 전송기</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .port-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px; /* 최대 너비 설정 */
+        }
+        .port {
+            flex: 1;
+            margin: 0 10px; /* 좌우 여백 설정 */
+        }
+    </style>
 </head>
 <body>
-    <h1>OSC 설정 및 신호 보내기</h1>
+    <div class="container">
+        <h2>OSC 메시지 전송기</h2>
+        <label for="oscAddress">OSC 주소:</label>
+        <input type="text" id="oscAddress" placeholder="예: /test" />
+        
+        <label for="oscPort1">포트 번호 1:</label>
+        <input type="number" id="oscPort1" placeholder="7001" />
+        
+        <label for="oscPort2">포트 번호 2:</label>
+        <input type="number" id="oscPort2" placeholder="7002" />
 
-    <!-- OSC 설정 -->
-    <h2>OSC 설정</h2>
-    <label for="oscAddress">OSC 전송 주소:</label>
-    <input type="text" id="oscAddress" placeholder="OSC 전송 주소 입력" /><br><br>
+        <button id="saveSettingsButton">주소 저장</button>
 
-    <label for="oscPort">OSC 포트 번호:</label>
-    <input type="text" id="oscPort" placeholder="OSC 포트 번호 입력" /><br><br>
+        <h3>메시지 입력</h3>
 
-    <!-- OSC 설정 저장 버튼 -->
-    <button id="saveSettingsButton">OSC 설정 저장</button>
-    <br><br>
+        <div class="port-container">
+            <div class="port">
+                <h4>포트 1</h4>
+                <div>
+                    <input type="text" id="oscMsg1" placeholder="메시지 1" />
+                    <button class="sendButton" data-index="1">포트1번 전송 1</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg2" placeholder="메시지 2" />
+                    <button class="sendButton" data-index="2">포트1번 전송 2</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg3" placeholder="메시지 3" />
+                    <button class="sendButton" data-index="3">포트1번 전송 3</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg4" placeholder="메시지 4" />
+                    <button class="sendButton" data-index="4">포트1번 전송 4</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg5" placeholder="메시지 5" />
+                    <button class="sendButton" data-index="5">포트1번 전송 5</button>
+                </div>
+            </div>
 
-    <!-- OSC 신호 전송 설정 -->
-    <h2>OSC 신호 전송</h2>
-    <div id="oscSignals">
-        <!-- 1~5번 신호 입력 칸 및 버튼 -->
-        <div>
-            <label for="oscMsgAddress1">신호 1 메시지 주소:</label>
-            <input type="text" id="oscMsgAddress1" placeholder="메시지 주소" />
-            <button class="sendOscButton" data-signal="1">1번 신호 보내기</button>
+            <div class="port">
+                <h4>포트 2</h4>
+                <div>
+                    <input type="text" id="oscMsg6" placeholder="메시지 1" />
+                    <button class="sendButton" data-index="1">포트2번 전송 1</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg7" placeholder="메시지 2" />
+                    <button class="sendButton" data-index="2">포트2번 전송 2</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg8" placeholder="메시지 3" />
+                    <button class="sendButton" data-index="3">포트2번 전송 3</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg9" placeholder="메시지 4" />
+                    <button class="sendButton" data-index="4">포트2번 전송 4</button>
+                </div>
+                <div>
+                    <input type="text" id="oscMsg10" placeholder="메시지 5" />
+                    <button class="sendButton" data-index="5">포트2번 전송 5</button>
+                </div>
+            </div>
         </div>
-        <div>
-            <label for="oscMsgAddress2">신호 2 메시지 주소:</label>
-            <input type="text" id="oscMsgAddress2" placeholder="메시지 주소" />
-            <button class="sendOscButton" data-signal="2">2번 신호 보내기</button>
-        </div>
-        <div>
-            <label for="oscMsgAddress3">신호 3 메시지 주소:</label>
-            <input type="text" id="oscMsgAddress3" placeholder="메시지 주소" />
-            <button class="sendOscButton" data-signal="3">3번 신호 보내기</button>
-        </div>
-        <div>
-            <label for="oscMsgAddress4">신호 4 메시지 주소:</label>
-            <input type="text" id="oscMsgAddress4" placeholder="메시지 주소" />
-            <button class="sendOscButton" data-signal="4">4번 신호 보내기</button>
-        </div>
-        <div>
-            <label for="oscMsgAddress5">신호 5 메시지 주소:</label>
-            <input type="text" id="oscMsgAddress5" placeholder="메시지 주소" />
-            <button class="sendOscButton" data-signal="5">5번 신호 보내기</button>
-        </div>
+
+        <div id="status"></div>
     </div>
 
-    <script>
-      let savedOscAddress = '';
-      let savedOscPort = '';
-
-      const ws = new WebSocket("ws://localhost:3000");
-
-      // WebSocket 연결 상태 확인
-      ws.onopen = function () {
-        console.log("WebSocket 연결 성공");
-      };
-
-      // WebSocket 메시지 수신 이벤트 처리
-      ws.onmessage = function (event) {
-        console.log("서버로부터 메시지:", event.data);
-      };
-
-      // WebSocket 연결 닫힘 처리
-      ws.onclose = function () {
-        console.log("WebSocket 연결 종료");
-      };
-
-      // WebSocket 에러 처리
-      ws.onerror = function (error) {
-        console.error("WebSocket 오류:", error);
-      };
-
-      // OSC 설정 저장 버튼 클릭 이벤트 처리
-      document.getElementById("saveSettingsButton").addEventListener("click", () => {
-        const oscAddress = document.getElementById("oscAddress").value;
-        const oscPort = document.getElementById("oscPort").value;
-
-        if (oscAddress && oscPort) {
-          savedOscAddress = oscAddress;
-          savedOscPort = oscPort;
-
-          console.log(`OSC 설정 저장: OSC 주소: ${savedOscAddress}, 포트: ${savedOscPort}`);
-
-          // 설정 저장 후 서버에 OSC 설정 전송
-          if (ws.readyState === WebSocket.OPEN) {
-            const message = {
-              oscAddress: savedOscAddress,
-              oscPort: parseInt(savedOscPort, 10),
-              isLoopMessage: false
-            };
-            ws.send(JSON.stringify(message));
-          } else {
-            console.log("WebSocket 연결 상태가 아닙니다.");
-          }
-        } else {
-          console.log("OSC 주소와 포트를 입력하세요.");
-        }
-      });
-
-      // 각 신호 전송 버튼 클릭 이벤트 처리
-      document.querySelectorAll(".sendOscButton").forEach(button => {
-        button.addEventListener("click", () => {
-          const signalNumber = button.getAttribute("data-signal");
-          const oscMsgAddress = document.getElementById(`oscMsgAddress${signalNumber}`).value;
-
-          if (savedOscAddress && savedOscPort && oscMsgAddress) {
-            if (ws.readyState === WebSocket.OPEN) {
-              const message = {
-                oscAddress: savedOscAddress,
-                oscPort: parseInt(savedOscPort, 10),
-                oscMsgAddress: oscMsgAddress,
-                content: `신호 ${signalNumber} 전송`,
-                isLoopMessage: false
-              };
-
-              ws.send(JSON.stringify(message));
-              console.log(`OSC 신호 전송: 주소: ${savedOscAddress}, 포트: ${savedOscPort}, 메시지 Address: ${oscMsgAddress}`);
-            } else {
-              console.log("WebSocket 연결 상태가 아닙니다.");
-            }
-          } else {
-            console.log("OSC 설정 및 메시지 Address를 입력하세요.");
-          }
-        });
-      });
-    </script>
-  </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/osc/1.1.1/osc.min.js"></script>
+    <script src="osc-server.js"></script>
+</body>
 </html>

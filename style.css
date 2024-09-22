@@ -1,0 +1,68 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    margin: 0;
+    height: 100vh;
+    overflow: auto;
+    /* 전체 페이지에 스크롤 추가 */
+}
+
+.left-panel,
+.right-panel {
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.left-panel {
+    width: 50%;
+    /* 좌측 패널 너비 */
+    border-right: 1px solid #ccc;
+    /* 오른쪽 경계선 */
+}
+
+.right-panel {
+    width: 50%;
+    /* 우측 패널 너비 */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* 자식 요소의 절대 위치를 위해 */
+}
+
+h1,
+h2 {
+    margin: 5px 0;
+    font-size: 1rem;
+    /* 제목 크기 */
+}
+
+input,
+button {
+    margin: 3px 0;
+    width: 70%;
+    /* 입력 필드와 버튼의 너비 */
+    padding: 8px;
+    font-size: 0.9rem;
+    /* 글자 크기 */
+}
+
+#messages {
+    margin-top: 10px;
+    flex-grow: 0.5;
+    /* 가변 높이 설정 */
+    border: 1px solid #ccc;
+    padding: 5px;
+    overflow-y: auto;
+    /* 스크롤 가능 */
+}
+
+#emotionMapping {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 0.8rem;
+    /* 작은 글자 크기 */
+    background-color: rgba(212, 212, 212, 0.9);
+    /* 배경 색상 */
+    padding: 5px;
+}

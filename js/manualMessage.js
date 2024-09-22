@@ -24,38 +24,31 @@ function sendOSCMessage(oscMsgAddress, content) {
   }
 }
 
+// 메시지 전송 이벤트를 처리하는 함수
+function handleSendMessage(port) {
+  const oscMsgAddress = document.getElementById("oscMsgAddress").value;
+  const content = `포트 ${port}로 전송된 메시지`;  // 동적으로 메시지 내용 생성
+
+  if (oscMsgAddress) {
+    sendOSCMessage(oscMsgAddress, content);
+  } else {
+    console.log("메시지 Address를 입력하세요.");
+  }
+}
+
 // DOM이 완전히 로드된 후에 이벤트 리스너 추가
 document.addEventListener("DOMContentLoaded", () => {
-  const oscMsgAddressInput = document.getElementById("oscMsgAddress");
   const sendOscButtonPort1 = document.getElementById("sendOscButtonPort1");
   const sendOscButtonPort2 = document.getElementById("sendOscButtonPort2");
 
-  if (!oscMsgAddressInput || !sendOscButtonPort1 || !sendOscButtonPort2) {
+  if (!sendOscButtonPort1 || !sendOscButtonPort2) {
     console.error("필요한 DOM 요소를 찾을 수 없습니다.");
     return;
   }
 
   // 포트 1에 수동 OSC 메시지 전송
-  sendOscButtonPort1.addEventListener("click", () => {
-    const oscMsgAddress = oscMsgAddressInput.value;
-    const content = "포트 1로 전송된 메시지";  // 포트 1에 전송할 내용
-
-    if (oscMsgAddress) {
-      sendOSCMessage(oscMsgAddress, content);
-    } else {
-      console.log("메시지 Address를 입력하세요.");
-    }
-  });
+  sendOscButtonPort1.addEventListener("click", () => handleSendMessage(1));
 
   // 포트 2에 수동 OSC 메시지 전송
-  sendOscButtonPort2.addEventListener("click", () => {
-    const oscMsgAddress = oscMsgAddressInput.value;
-    const content = "포트 2로 전송된 메시지";  // 포트 2에 전송할 내용
-
-    if (oscMsgAddress) {
-      sendOSCMessage(oscMsgAddress, content);
-    } else {
-      console.log("메시지 Address를 입력하세요.");
-    }
-  });
+  sendOscButtonPort2.addEventListener("click", () => handleSendMessage(2));
 });

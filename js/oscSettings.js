@@ -10,7 +10,7 @@ function isWebSocketOpen() {
   }
 }
 
-// OSC 설정을 WebSocket으로 전송하는 함수
+// OSC 메시지를 WebSocket으로 전송하는 함수
 function sendOSCMessage(message) {
   if (isWebSocketOpen()) {
     ws.send(JSON.stringify(message));
@@ -20,24 +20,29 @@ function sendOSCMessage(message) {
 
 // DOM이 완전히 로드된 후에 이벤트 리스너 추가
 document.addEventListener("DOMContentLoaded", () => {
-  const saveSettingsButton = document.getElementById("saveSettingsButton");
-  const oscAddressInput = document.getElementById("oscAddress");
-  const oscPort1Input = document.getElementById("oscPort1");
-  const oscPort2Input = document.getElementById("oscPort2");
-  const sendOscButtonPort1 = document.getElementById("sendOscButtonPort1");
-  const sendOscButtonPort2 = document.getElementById("sendOscButtonPort2");
-  const oscMsgAddressInput = document.getElementById("oscMsgAddress");  // 메시지 Address 입력
+  const elements = {
+    saveSettingsButton: document.getElementById("saveSettingsButton"),
+    oscAddressInput: document.getElementById("oscAddress"),
+    oscPort1Input: document.getElementById("oscPort1"),
+    oscPort2Input: document.getElementById("oscPort2"),
+    sendOscButtonPort1: document.getElementById("sendOscButtonPort1"),
+    sendOscButtonPort2: document.getElementById("sendOscButtonPort2"),
+    oscMsgAddressInput: document.getElementById("oscMsgAddress")  // 메시지 Address 입력
+  };
 
-  if (!saveSettingsButton || !oscAddressInput || !oscPort1Input || !oscPort2Input || !sendOscButtonPort1 || !sendOscButtonPort2 || !oscMsgAddressInput) {
-    console.error("필요한 DOM 요소를 찾을 수 없습니다.");
-    return;
+  // 필수 DOM 요소 확인
+  for (const key in elements) {
+    if (!elements[key]) {
+      console.error("필요한 DOM 요소를 찾을 수 없습니다.");
+      return;
+    }
   }
 
   // OSC 설정 저장 버튼 클릭
-  saveSettingsButton.addEventListener("click", () => {
-    const oscAddress = oscAddressInput.value;
-    const oscPort1 = parseInt(oscPort1Input.value, 10);
-    const oscPort2 = parseInt(oscPort2Input.value, 10);
+  elements.saveSettingsButton.addEventListener("click", () => {
+    const oscAddress = elements.oscAddressInput.value;
+    const oscPort1 = parseInt(elements.oscPort1Input.value, 10);
+    const oscPort2 = parseInt(elements.oscPort2Input.value, 10);
 
     if (oscAddress && !isNaN(oscPort1) && !isNaN(oscPort2)) {
       console.log(`OSC 설정 저장: OSC 주소: ${oscAddress}, 포트1: ${oscPort1}, 포트2: ${oscPort2}`);
@@ -52,15 +57,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // OSC 메시지 전송 함수 (포트 1 또는 포트 2 선택)
+  // OSC 메시지 전송 함수
   function sendOscMessageToPort(oscMsgAddress, oscPort) {
     if (oscMsgAddress && !isNaN(oscPort)) {
-      console.log(`메시지 전송: 주소=${oscMsgAddress}, 포트=${oscPort}`);
-      const content = "Your message content";  // 수동 메시지 내용 추가
       const message = {
         oscAddress: oscMsgAddress,
         oscPort: oscPort,
-        content: content,  // 메시지 내용 포함
+        content: "Your message content",  // 수동 메시지 내용
         isLoopMessage: false
       };
       sendOSCMessage(message);
@@ -69,17 +72,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 포트 1에 메시지 전송
-  sendOscButtonPort1.addEventListener("click", () => {
-    const oscMsgAddress = oscMsgAddressInput.value;
-    const oscPort1 = parseInt(oscPort1Input.value, 10);
-    sendOscMessageToPort(oscMsgAddress, oscPort1);
-  });
+  // 포트에 메시지 전송
+  function setupSendButton(button, portInput) {
+    button.addEventListener("click", () => {
+      const oscMsgAddress = elements.oscMsgAddressInput.value;
+      const oscPort = parseInt(portInput.value, 10);
+      sendOscMessageToPort(oscMsgAddress, oscPort);
+    });
+  }
 
-  // 포트 2에 메시지 전송
-  sendOscButtonPort2.addEventListener("click", () => {
-    const oscMsgAddress = oscMsgAddressInput.value;
-    const oscPort2 = parseInt(oscPort2Input.value, 10);
-    sendOscMessageToPort(oscMsgAddress, oscPort2);
-  });
+  // 포트 1 및 포트 2에 대한 버튼 설정
+  setupSendButton(elements.sendOscButtonPort1, elements.oscPort1Input);
+  setupSendButton(elements.sendOscButtonPort2, elements.oscPort2Input);
 });
