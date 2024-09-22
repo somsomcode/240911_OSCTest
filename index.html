@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OSC 설정 및 신호 보내기</title>
+    <!-- 자바스크립트 파일 경로 확인 -->
     <script type="module" src="./js/websocket.js"></script>
     <script type="module" src="./js/oscSettings.js"></script>
     <script type="module" src="./js/manualMessage.js"></script>
@@ -17,8 +18,13 @@
     <label for="oscAddress">OSC 전송 주소:</label>
     <input type="text" id="oscAddress" placeholder="OSC 전송 주소 입력" /><br><br>
 
-    <label for="oscPort">OSC 포트 번호:</label>
-    <input type="text" id="oscPort" placeholder="OSC 포트 번호 입력" /><br><br>
+    <!-- 첫 번째 포트 -->
+    <label for="oscPort1">OSC 포트 1 번호:</label>
+    <input type="text" id="oscPort1" placeholder="OSC 포트 1 번호 입력" /><br><br>
+
+    <!-- 두 번째 포트 -->
+    <label for="oscPort2">OSC 포트 2 번호:</label>
+    <input type="text" id="oscPort2" placeholder="OSC 포트 2 번호 입력" /><br><br>
 
     <button id="saveSettingsButton">OSC 설정 저장</button>
     <br><br>
@@ -34,8 +40,101 @@
     <label for="loopInterval">반복 간격 (밀리초):</label>
     <input type="text" id="loopInterval" placeholder="반복 간격 설정 (예: 3000)" /><br><br>
 
-    <button id="sendOscButton">수동 OSC 신호 보내기</button>
+    <!-- 메시지 전송 버튼들 -->
+    <button id="sendOscButtonPort1">포트 1에 수동 OSC 신호 보내기</button>
+    <button id="sendOscButtonPort2">포트 2에 수동 OSC 신호 보내기</button>
     <button id="startLoopButton">반복 OSC 신호 시작</button>
     <button id="stopLoopButton">반복 OSC 신호 중지</button>
+
+    <!-- DOM이 완전히 로드된 후에 자바스크립트 실행 -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // WebSocket 연결
+        const socket = new WebSocket('ws://localhost:3001');
+
+        socket.onopen = () => {
+          console.log('WebSocket 연결이 열렸습니다.');
+        };
+
+        socket.onmessage = (event) => {
+          console.log('서버로부터 수신한 메시지:', event.data);
+        };
+
+        socket.onclose = () => {
+          console.log('WebSocket 연결이 닫혔습니다.');
+        };
+
+        socket.onerror = (error) => {
+          console.error('WebSocket 오류:', error);
+        };
+
+        // OSC 설정 관련 기능
+        const saveSettingsButton = document.getElementById('saveSettingsButton');
+        const oscAddressInput = document.getElementById('oscAddress');
+        const oscPort1Input = document.getElementById('oscPort1');
+        const oscPort2Input = document.getElementById('oscPort2');
+
+        saveSettingsButton.addEventListener('click', () => {
+          const oscAddress = oscAddressInput.value;
+          const oscPort1 = oscPort1Input.value;
+          const oscPort2 = oscPort2Input.value;
+
+          if (oscAddress && oscPort1 && oscPort2) {
+            console.log(`OSC 설정 저장: 주소=${oscAddress}, 포트1=${oscPort1}, 포트2=${oscPort2}`);
+          } else {
+            console.error("모든 필드를 입력하세요.");
+          }
+        });
+
+        // 포트 1에 OSC 메시지 보내기
+        const sendOscButtonPort1 = document.getElementById('sendOscButtonPort1');
+        sendOscButtonPort1.addEventListener('click', () => {
+          const oscMsgAddress = document.getElementById('oscMsgAddress').value;
+          const oscPort1 = oscPort1Input.value;
+
+          if (oscMsgAddress && oscPort1) {
+            console.log(`포트 1에 OSC 메시지 전송: 주소=${oscMsgAddress}, 포트=${oscPort1}`);
+            socket.send(JSON.stringify({ address: oscMsgAddress, port: oscPort1 })); // WebSocket으로 메시지 전송
+          } else {
+            console.error("OSC 메시지 주소와 포트 1을 입력하세요.");
+          }
+        });
+
+        // 포트 2에 OSC 메시지 보내기
+        const sendOscButtonPort2 = document.getElementById('sendOscButtonPort2');
+        sendOscButtonPort2.addEventListener('click', () => {
+          const oscMsgAddress = document.getElementById('oscMsgAddress').value;
+          const oscPort2 = oscPort2Input.value;
+
+          if (oscMsgAddress && oscPort2) {
+            console.log(`포트 2에 OSC 메시지 전송: 주소=${oscMsgAddress}, 포트=${oscPort2}`);
+            socket.send(JSON.stringify({ address: oscMsgAddress, port: oscPort2 })); // WebSocket으로 메시지 전송
+          } else {
+            console.error("OSC 메시지 주소와 포트 2을 입력하세요.");
+          }
+        });
+
+        // 반복 신호 시작 버튼
+        const startLoopButton = document.getElementById('startLoopButton');
+        const stopLoopButton = document.getElementById('stopLoopButton');
+
+        startLoopButton.addEventListener('click', () => {
+          const loopMsgAddress = document.getElementById('loopMsgAddress').value;
+          const loopInterval = parseInt(document.getElementById('loopInterval').value, 10);
+
+          if (loopMsgAddress && loopInterval) {
+            console.log(`반복 신호 시작: 주소=${loopMsgAddress}, 간격=${loopInterval}`);
+            // 반복 전송 로직 추가 가능
+          } else {
+            console.error("반복 메시지 주소와 간격을 입력하세요.");
+          }
+        });
+
+        stopLoopButton.addEventListener('click', () => {
+          console.log("반복 OSC 신호 중지");
+          // 반복 중지 로직 추가 가능
+        });
+      });
+    </script>
   </body>
 </html>
