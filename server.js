@@ -42,7 +42,7 @@ wss.on("connection", (ws) => {
     }
   }, 30000);
 
-  ws.on("pong", () => console.log("Pong 수신"));
+  ws.on("pong", () => console.log("소켓 연결"));
 
 
   // 메시지 처리 함수

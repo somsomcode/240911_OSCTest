@@ -1,1 +1,2 @@
-echo "main.html" >> .gitignore
+main.html
+data.html
