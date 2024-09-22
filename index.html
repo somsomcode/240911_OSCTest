@@ -49,6 +49,25 @@
     <!-- DOM이 완전히 로드된 후에 자바스크립트 실행 -->
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        // WebSocket 연결
+        const socket = new WebSocket('ws://localhost:3001');
+
+        socket.onopen = () => {
+          console.log('WebSocket 연결이 열렸습니다.');
+        };
+
+        socket.onmessage = (event) => {
+          console.log('서버로부터 수신한 메시지:', event.data);
+        };
+
+        socket.onclose = () => {
+          console.log('WebSocket 연결이 닫혔습니다.');
+        };
+
+        socket.onerror = (error) => {
+          console.error('WebSocket 오류:', error);
+        };
+
         // OSC 설정 관련 기능
         const saveSettingsButton = document.getElementById('saveSettingsButton');
         const oscAddressInput = document.getElementById('oscAddress');
@@ -75,6 +94,7 @@
 
           if (oscMsgAddress && oscPort1) {
             console.log(`포트 1에 OSC 메시지 전송: 주소=${oscMsgAddress}, 포트=${oscPort1}`);
+            socket.send(JSON.stringify({ address: oscMsgAddress, port: oscPort1 })); // WebSocket으로 메시지 전송
           } else {
             console.error("OSC 메시지 주소와 포트 1을 입력하세요.");
           }
@@ -88,6 +108,7 @@
 
           if (oscMsgAddress && oscPort2) {
             console.log(`포트 2에 OSC 메시지 전송: 주소=${oscMsgAddress}, 포트=${oscPort2}`);
+            socket.send(JSON.stringify({ address: oscMsgAddress, port: oscPort2 })); // WebSocket으로 메시지 전송
           } else {
             console.error("OSC 메시지 주소와 포트 2을 입력하세요.");
           }
@@ -103,6 +124,7 @@
 
           if (loopMsgAddress && loopInterval) {
             console.log(`반복 신호 시작: 주소=${loopMsgAddress}, 간격=${loopInterval}`);
+            // 반복 전송 로직 추가 가능
           } else {
             console.error("반복 메시지 주소와 간격을 입력하세요.");
           }
@@ -110,6 +132,7 @@
 
         stopLoopButton.addEventListener('click', () => {
           console.log("반복 OSC 신호 중지");
+          // 반복 중지 로직 추가 가능
         });
       });
     </script>

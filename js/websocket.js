@@ -1,6 +1,6 @@
 // websocket.js
 
-export const ws = new WebSocket('ws://localhost:3000');  // WebSocket 연결 설정
+export const ws = new WebSocket('ws://localhost:3001');  // WebSocket 연결 설정
 
 let pingInterval;
 
