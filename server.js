@@ -1,108 +1,79 @@
 const express = require("express");
 const osc = require("osc");
-const app = express();
-const http = require("http");
 const WebSocket = require("ws");
 
-let userOscAddress = "";
-let userOscPort = "";
-let loopIntervalId = null;
-
-const server = http.createServer(app);
+const app = express();
+const server = require('http').createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// OSC 설정
 const udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
-  localPort: 7002,
+  localPort: 7002, // 이 포트에서 수신
 });
 
+// OSC 포트 열기
 udpPort.open();
 
-udpPort.on("ready", function () {
+udpPort.on("ready", () => {
   console.log("OSC 포트가 7002에서 열렸습니다.");
-});
 
-udpPort.on("error", function (error) {
-  console.error("OSC 포트 열기 중 오류 발생:", error);
-});
+  // WebSocket 연결 처리
+  wss.on("connection", (ws) => {
+    console.log("WebSocket 클라이언트 연결됨");
 
-wss.on("connection", (ws) => {
-  console.log("WebSocket 클라이언트 연결됨");
+    // 메시지 처리 함수
+    ws.on("message", (message) => {
+      try {
+        const parsedMessage = JSON.parse(message);
+        const { address, args, port1, port2 } = parsedMessage;
 
-  ws.on("message", (message) => {
-    try {
-      const {
-        oscAddress,
-        oscPort,
-        oscMsgAddress,
-        content,
-        isLoopMessage,
-        loopAddress,
-        loopInterval,
-        stopLoop
-      } = JSON.parse(message);
-
-      // OSC 주소 및 포트 설정
-      if (oscAddress && oscPort) {
-        userOscAddress = oscAddress;
-        userOscPort = oscPort;
-        console.log(`OSC 설정 저장: 주소 ${userOscAddress}, 포트 ${userOscPort}`);
-      }
-
-      // 반복 메시지 중지 요청 처리
-      if (stopLoop && isLoopMessage) {
-        if (loopIntervalId) {
-          clearInterval(loopIntervalId);
-          loopIntervalId = null;
-          console.log("반복 메시지 전송 중지됨");
-        }
-      }
-
-      // 반복 메시지 설정 및 시작
-      else if (isLoopMessage && loopAddress && loopInterval) {
-        if (loopIntervalId) {
-          clearInterval(loopIntervalId);
-        }
-        loopIntervalId = setInterval(() => {
-          let msg = { address: loopAddress };
-          udpPort.send(msg, userOscAddress, userOscPort, (err) => {
-            if (err) {
-              console.error("OSC 메시지 전송 중 오류 발생:", err);
-            } else {
-              console.log(`반복 OSC 전송: ${userOscAddress}:${userOscPort}, Address: ${loopAddress}`);
-            }
-          });
-        }, loopInterval);
-        console.log(`반복 메시지 전송 시작: ${loopInterval}ms 간격`);
-      }
-
-      // 수동 메시지 전송
-      if (!isLoopMessage && oscMsgAddress) {
-        let msg = {
-          address: oscMsgAddress,
-          args: [content],
+        // OSC 메시지 전송 함수
+        const oscMessage = {
+          address: address,
+          args: args || []  // args 배열을 그대로 사용, 없을 경우 빈 배열
         };
 
-        udpPort.send(msg, userOscAddress, userOscPort, (err) => {
-          if (err) {
-            console.error("OSC 메시지 전송 중 오류 발생:", err);
-          } else {
-            console.log(`수동 OSC 전송: ${userOscAddress}:${userOscPort}, Address: ${oscMsgAddress}`);
-          }
-        });
-      }
-    } catch (error) {
-      console.error("메시지 처리 중 오류:", error);
-    }
-  });
+        // 포트 1로 메시지 전송
+        if (port1) {
+          udpPort.send(oscMessage, "127.0.0.1", port1, (err) => {
+            if (err) {
+              console.error(`포트1 (${port1})로 메시지 전송 중 오류 발생:`, err);
+            } else {
+              console.log(`OSC 메시지 전송: 주소=${address}, 포트1=${port1}, 인자=${args}`);
+            }
+          });
+        }
 
-  ws.on("close", () => {
-    console.log("WebSocket 연결 종료");
-    clearInterval(loopIntervalId); // WebSocket 연결 종료 시 반복 메시지 중지
+        // 포트 2로 메시지 전송
+        if (port2) {
+          udpPort.send(oscMessage, "127.0.0.1", port2, (err) => {
+            if (err) {
+              console.error(`포트2 (${port2})로 메시지 전송 중 오류 발생:`, err);
+            } else {
+              console.log(`OSC 메시지 전송: 주소=${address}, 포트2=${port2}, 인자=${args}`);
+            }
+          });
+        }
+
+        // 포트가 모두 없을 경우 에러 출력
+        if (!port1 && !port2) {
+          console.error("포트 정보가 없습니다. 포트 1 또는 포트 2를 지정하세요.");
+        }
+      } catch (error) {
+        console.error("메시지 처리 중 오류:", error);
+      }
+    });
+
+    // WebSocket 종료 처리
+    ws.on("close", () => {
+      console.log("WebSocket 연결 종료");
+    });
   });
 });
 
-const port = process.env.PORT || 3000;
+// HTTP 서버 실행
+const port = 3001;
 server.listen(port, () => {
   console.log(`서버가 포트 ${port}에서 실행 중입니다.`);
 });
