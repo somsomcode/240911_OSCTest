@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 클라이언트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #messages {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+    <script>
+        // 웹소켓 클라이언트 설정
+        const socket = new WebSocket('ws://localhost:3000'); // 서버 주소
+
+        // 웹소켓이 열리면
+        socket.addEventListener('open', () => {
+            console.log('WebSocket 연결됨');
+        });
+
+        // 메시지를 수신했을 때
+        socket.addEventListener('message', (event) => {
+            console.log('메시지 수신:', event.data);
+            displayMessage(event.data); // 수신한 메시지를 화면에 표시
+
+            // 수신한 데이터가 0~5인 경우
+            const receivedValue = parseInt(event.data, 10);
+            if (receivedValue >= 0 && receivedValue <= 5) {
+                // 로컬 서버로 동일한 숫자 전송
+                sendToLocalServer(receivedValue); // 숫자로 전송
+            }
+        });
+
+        // 로컬 서버로 데이터 전송 함수
+        function sendToLocalServer(data) {
+            const localSocket = new WebSocket('ws://localhost:3001'); // 로컬 서버 주소
+
+            localSocket.addEventListener('open', () => {
+                console.log('로컬 서버에 연결됨');
+                localSocket.send(data.toString()); // 숫자를 문자열로 변환하여 전송
+            });
+
+            localSocket.addEventListener('message', (event) => {
+                console.log('로컬 서버 응답:', event.data);
+                localSocket.close(); // 작업이 끝난 후 소켓 닫기
+            });
+
+            localSocket.addEventListener('error', (error) => {
+                console.error('로컬 서버 오류:', error);
+            });
+        }
+
+        // 수신한 메시지를 화면에 표시하는 함수
+        function displayMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messagesDiv.appendChild(messageElement);
+        }
+    </script>
+</head>
+<body>
+    <h1>WebSocket 클라이언트</h1>
+    <p>콘솔에서 웹소켓 연결 상태를 확인하세요.</p>
+    <div id="messages"></div> <!-- 수신한 메시지를 표시할 영역 -->
+</body>
+</html>
